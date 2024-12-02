@@ -1,5 +1,5 @@
-haveDepCtrl, DependencyControl = pcall require, 'l0.DependencyControl'
-local depctrl, Aegi, Ass, Table
+haveDepCtrl, DependencyControl, depctrl = pcall require, 'l0.DependencyControl'
+local Aegi, Ass, Table
 if haveDepCtrl
     depctrl = DependencyControl{
         name: "ILL",

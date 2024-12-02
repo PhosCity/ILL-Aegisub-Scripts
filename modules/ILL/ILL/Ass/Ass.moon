@@ -31,11 +31,12 @@ class Ass
             break
 
         for i = 1, #@sel
-            line = @sub[@sel[i]]
+            index = @sel[i]
+            line = @sub[index]
             continue unless callback line
 
-            line.index = i
-            line.dialogueIndex = @sel[i] - firstDialogueIndex + 1
+            line.index = index
+            line.dialogueIndex = index - firstDialogueIndex + 1
             line.duration = line.end_time - line.start_time
             line.styleRef = @styles[line.style]
 
@@ -58,6 +59,17 @@ class Ass
                     line = Table.deepcopy l
                     return line, i
                 return l, i
+
+
+    -- iterates over all the selected lines of the ass file
+    iterSel: (callback, reverse, copy) =>
+        startIndex, endIndex, increment = 1, #@lines, 1
+        if reverse
+            startIndex, endIndex, increment =  #@lines, 1, -1
+
+        for i = startIndex, endIndex, increment
+            line = @lines[i]
+            callback line, line.index, reverse and endIndex - i + 1 or i, #@lines
 
 
     -- gets the meta and styles values from the ass file
