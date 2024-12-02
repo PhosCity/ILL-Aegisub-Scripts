@@ -1,41 +1,35 @@
-module_version = "2.0.0"
-
-haveDepCtrl, DependencyControl = pcall require, "l0.DependencyControl"
-
-local depctrl
+haveDepCtrl, DependencyControl = pcall require, 'l0.DependencyControl'
+local depctrl, Aegi, Ass, Table
 if haveDepCtrl
-	depctrl = DependencyControl {
-        -- TODO: Temporary name
-		name: "ILL-dev"
-		version: module_version
-		description: "Module that eases the creation of macros."
-		author: "ILLTeam"
-		moduleName: "ILL.ILL"
+    depctrl = DependencyControl{
+        name: "ILL",
+        version: "2.0.0",
+        description: "Module that eases the creation of macros",
+        author: "ILLTeam",
+        moduleName: "ILL.ILL",
+        url: "https://github.com/TypesettingTools/ILL-Aegisub-Scripts",
+        feed: "https://raw.githubusercontent.com/TypesettingTools/ILL-Aegisub-Scripts/main/DependencyControl.json",
+        {
+            "ILL.ILL.Aegi"
+            "ILL.ILL.Ass.Ass"
+            "ILL.ILL.Table"
+        }
+    }
+    Aegi, Ass, Table = depctrl\requireModules!
+else
+    Aegi = require "ILL.ILL.Aegi"
+    Table = require "ILL.ILL.Table"
+    Ass = require "ILL.ILL.Ass.Ass"
 
-        -- TODO: Temporarily commented
-		-- url: "https://github.com/TypesettingTools/ILL-Aegisub-Scripts/"
-		-- feed: "https://raw.githubusercontent.com/TypesettingTools/ILL-Aegisub-Scripts/main/DependencyControl.json"
-		-- {
-		-- 	{"ffi", "json"}
-		-- 	{
-		-- 		"clipper2.clipper2"
-		-- 		version: "1.3.2"
-		-- 		url: "https://github.com/TypesettingTools/ILL-Aegisub-Scripts/"
-		-- 		feed: "https://raw.githubusercontent.com/TypesettingTools/ILL-Aegisub-Scripts/main/DependencyControl.json"
-		-- 	}
-		-- }
-	}
-
-import Aegi    from require "ILL.ILL.Aegi"
-import Ass     from require "ILL.ILL.Ass.Ass"
-
-modules = {
-	:Aegi
-	:Ass
-	version: module_version
+module = {
+    :Aegi
+    :Ass
+    :Table
 }
 
+
 if haveDepCtrl
-	depctrl\register modules
+    module.version = depctrl
+    return depctrl\register module
 else
-	modules
+    return module

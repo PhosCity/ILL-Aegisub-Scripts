@@ -120,4 +120,4 @@ class Table
 		addtocart tb, table_name, indent
 		return cart .. autoref
 
-{:Table}
+Table
