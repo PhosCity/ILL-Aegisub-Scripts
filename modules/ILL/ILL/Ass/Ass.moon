@@ -1,7 +1,4 @@
-import Table from require "ILL.ILL.Table"
-import Util  from require "ILL.ILL.Util"
 import Aegi  from require "ILL.ILL.Aegi"
-import Text  from require "ILL.ILL.Ass.Text.Text"
 
 class Ass
 
@@ -15,10 +12,6 @@ class Ass
 				break
 		-- gets meta and styles values
 		@collectHead!
-
-	get: (index) => index and @[index] or @
-
-	getActiveLine: => @activeLine
 
 	new: (...) => @set ...
 
@@ -104,95 +97,5 @@ class Ass
 
 		Aegi.debug 4, "ILL: Video X correction factor = %f\n\n", @meta.video_x_correct_factor
 		return @
-
-	-- gets the real number of the current line
-	lineNumber: (s) => s - @fi + 1
-
-	-- sets the value of the line in the dialog
-	setLine: (l, s) =>
-		-- makes updating the text more dynamic
-		instance = Ass.setText l
-		-- sets the value of the line
-		@sub[s + @i] = l
-		if instance
-			l.text = instance
-
-	-- inserts a line in dialogs
-	insertLine: (l, s) =>
-		i = s + @i + 1
-		-- makes updating the text more dynamic
-		instance = Ass.setText l
-		-- adds a dialogue line in subtitle
-		@sub.insert i, l
-		if instance
-			l.text = instance
-		-- inserts the index of this new line in the selected lines box
-		table.insert @newSelection, i
-		@i += 1
-		@activeLine += 1
-
-	-- removes a line in dialogs
-	removeLine: (l, s) =>
-		i = s + @i
-		l.comment = true
-		if Util.checkClass l.text, "Text"
-			l.text = l.text\__tostring!
-		@sub[i] = l
-		l.comment = false
-		if @remLine
-			@sub.delete i
-			@i -= 1
-			@activeLine -= 1
-
-	-- deletes a line in dialogs
-	deleteLine: (l, s) => @removeLine l, s
-
-	-- deletes a line or more in dialogs
-	deleteLines: (l, ...) =>
-		for i, n in ipairs type(...) == "table" and ... or {...}
-			@deleteLine l, n
-
-	-- gets the index values of the lines that were added
-	getNewSelection: =>
-		if #@newSelection > 0
-			return @newSelection, @activeLine < @fi and 1 or @activeLine
-
-	-- the subtitle that will appear on the progress screen
-	progressLine: (s, i, n) =>
-		Aegi.progressSet i, n
-		Aegi.progressTask "Processing Line: #{@lineNumber s} - #{i} / #{n}"
-		Aegi.progressCancelled!
-
-	-- sets an error on the line
-	error: (s, msg = "not specified") =>
-		Aegi.debug 0, "———— [Error] ➔ Line #{@lineNumber s}\n"
-		Aegi.debug 0, "—— [Cause] ➔ " .. msg .. "\n\n"
-		Aegi.progressCancel!
-
-	-- sets a warning on the line
-	warning: (s, msg = "not specified") =>
-		Aegi.debug 2, "———— [Warning] ➔ Line #{@lineNumber s} skipped\n"
-		Aegi.debug 2, "—— [Cause] ➔ " .. msg .. "\n\n"
-
-	-- sets the final value of the text
-	setText: (l) ->
-		if not l.isShape and Util.checkClass l.text, "Text"
-			copyInstance = Table.copy l.text
-			l.text = l.text\__tostring!
-			return copyInstance
-		elseif l.tags
-			local tags
-			if Util.checkClass l.tags, "Tags"
-				tags = Table.copy l.tags
-				tags\clear l.styleref
-				tags = tags\__tostring!
-			else
-				tags = l.tags
-			if l.isShape
-				l.text = tags .. l.shape
-			else
-				l.text = tags .. l.text_stripped
-		elseif l.isShape and l.shape
-			l.text = l.shape
 
 {:Ass}
