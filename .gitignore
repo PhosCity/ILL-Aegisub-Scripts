@@ -1,7 +1,13 @@
-docs/site/
-ffi-packages/Clipper2/*/
-ffi-packages/Images/*/
-modules/clipper2/*/
-*.so
-*.dll
-*.dylib
+# Git
+*
+!*/
+!.git*
+!.github/**
+
+# Modules
+!modules/**/*.moon
+
+#Manuals
+!docs/ILL.typ
+!docs/ILL.pdf
+!docs/images/*.png
