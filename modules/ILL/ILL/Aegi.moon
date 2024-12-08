@@ -1,6 +1,6 @@
 Table = require "ILL.ILL.Table"
 
-class Aegi
+return {
 
     -- use loaded frame rate data to convert an absolute time given in milliseconds into a frame number
     ffm: (ms) -> aegisub.frame_from_ms ms
@@ -33,27 +33,13 @@ class Aegi
     progressCancelled: ->
         if aegisub.progress.is_cancelled!
             aegisub.cancel!
-        return
 
-    -- cancels current processing
-    progressCancel: (msg) ->
-        if msg
-            aegisub.log msg
-        aegisub.cancel!
-        return
-
-    -- debugging support
-    debug: (lvl = 0, msg) ->
-        aegisub.debug.out lvl, msg
-        return
-
-    -- prints any value in the Aegisub log
-    log: (value) ->
-        if type(value) == "string" or type(value) == "number"
-            aegisub.log tostring(value) .. "\n"
-        else
-            aegisub.log Table.view value
-        return
+    -- Set the progress bar, task and check for user cancellation at once.
+    progressLine: (line, i, n) ->
+        aegisub.progress.set 100 * i / n
+        aegisub.progress.task "Processing Line: #{line.naturalIndex} - #{i} / #{n}"
+        if aegisub.progress.is_cancelled!
+            aegisub.cancel!
 
     -- returns true if video is open in Aegisub
     videoIsOpen: ->
@@ -61,4 +47,14 @@ class Aegi
             return false
         return true
 
-Aegi
+    -- returns framerate of the video
+    getFramerate: ->
+        if aegisub.project_properties!.video_file == ""
+            return 24000 / 1001
+        else
+            ref_ms = 100000000                          -- 10^8 ms ~~ 27.7h
+            refFrame = aegisub.frame_from_ms(ref_ms)
+            framerate = refFrame * 1000 / ref_ms
+            return framerate
+
+}

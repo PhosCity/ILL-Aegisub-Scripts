@@ -1,6 +1,6 @@
 {:insert, :remove} = table
 
-class Table
+return {
 
 	-- checks if the table is empty
 	isEmpty: (tb) -> next(tb) == nil
@@ -84,6 +84,23 @@ class Table
 			insert tb, start + delete, arguments[i_args + i]
 		return removes
 
+	-- returns the list containing elements only found in first list
+	diff: (tb, ...) ->
+		itemToRemove = {}
+		for list in *{...}
+			for item in *list
+				itemToRemove[item] = true
+		result = [item for item in *tb when not itemToRemove[item]]
+		result
+
+	-- remove all the indices of a list
+	removeIndices: (tb, indices = {}) ->
+		itemToRemove = {}
+		for item in *indices
+			itemToRemove[item] = true
+		result = [item for i, item in ipairs(tb) when not itemToRemove[i]]
+		result
+
 	-- returns the contents of a table to a string
 	view: (tb, table_name = "table_unnamed", indent = "") ->
 		cart, autoref = "", ""
@@ -120,4 +137,4 @@ class Table
 		addtocart tb, table_name, indent
 		return cart .. autoref
 
-Table
+}

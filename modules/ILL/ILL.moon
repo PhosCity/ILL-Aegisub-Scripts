@@ -1,5 +1,5 @@
 haveDepCtrl, DependencyControl, depctrl = pcall require, 'l0.DependencyControl'
-local Aegi, Ass, Table
+local Aegi, Ass, Table, Logger
 if haveDepCtrl
     depctrl = DependencyControl{
         name: "ILL",
@@ -13,18 +13,21 @@ if haveDepCtrl
             "ILL.ILL.Aegi"
             "ILL.ILL.Ass.Ass"
             "ILL.ILL.Table"
+            "ILL.ILL.Logger"
         }
     }
-    Aegi, Ass, Table = depctrl\requireModules!
+    Aegi, Ass, Table, Logger = depctrl\requireModules!
 else
     Aegi = require "ILL.ILL.Aegi"
     Table = require "ILL.ILL.Table"
     Ass = require "ILL.ILL.Ass.Ass"
+    Logger = require "ILL.ILL.Logger"
 
 module = {
     :Aegi
     :Ass
     :Table
+    :Logger
 }
 
 
