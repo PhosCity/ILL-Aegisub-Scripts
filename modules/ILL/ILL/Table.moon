@@ -71,10 +71,7 @@ Table = {
 
 	-- Get the keys of the table
 	keys: (tb) ->
-		newTbl = {}
-		for k in pairs tb
-			insert newTbl, k
-		newTbl
+		[key for key in pairs tb]
 
 	-- count number of elements with specified value in an array
 	count: (tb, callback) ->
@@ -94,8 +91,33 @@ Table = {
 
 	-- slices the array according to the given arguments
 	slice: (tb, startIndex, endIndex, step) ->
-		[tb[i] for i = startIndex or 1, endIndex or #tb, step or 1]
+		len = #tb
+		startIndex = startIndex < 0 and len + startIndex + 1 or startIndex or 1
+		endIndex = endIndex < 0 and len + endIndex + 1 or endIndex or len
+
+		startIndex = math.max(1, startIndex)
+		endIndex = math.min(len, endIndex)
+
+		[tb[i] for i = startIndex, endIndex, step or 1]
 	
+	-- trims elements from start index to end index
+	trim: (tb, startIndex, endIndex, step) ->
+		len = #tb
+		startIndex = startIndex < 0 and len + startIndex + 1 or startIndex or 1
+		endIndex = endIndex < 0 and len + endIndex + 1 or endIndex or len
+
+		startIndex = math.max(1, startIndex)
+		endIndex = math.min(len, endIndex)
+
+		indicesToRemove = {}
+		for i = startIndex, endIndex, step or 1
+			insert indicesToRemove, i
+
+		for i = #indicesToRemove, 1, -1
+			remove tb, indicesToRemove[i]
+
+		tb
+
 	-- join one or more arrays into an array
 	extend: (tb, ... ) ->
 		for tbl in *{...}
@@ -153,6 +175,21 @@ Table = {
 		for i = #value, 1, -1
 			insert tb, 1, value[i]
 		tb
+
+	-- split a list into chunks of specific size
+	chunk: (tb, chunkSize) ->
+		if chunkSize >= #tb or chunkSize < 1
+			return {tb}
+
+		newTbl, currentChunk = {}, {}
+		for item in *tb
+			insert currentChunk, item
+			if #currentChunk == chunkSize
+				insert newTbl, currentChunk
+				currentChunk = {}
+		if #currentChunk > 0
+			insert newTbl, currentChunk
+		newTbl
 
 	-- changes the contents of a array, adding new elements while removing old ones
 	splice: (tb, start, delete, ...) ->

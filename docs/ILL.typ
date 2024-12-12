@@ -1325,6 +1325,60 @@ result = Table.slice tb, 4, 2, -1  -- extract from index 4 to 2 with step -1 i.e
 
 -- Output
 -- {40, 30, 20}
+
+result = Table.slice tb, 2, -2  -- extract from index 2 to second to last index
+
+-- Output
+-- {20, 30, 40}
+```)
+
+== trim
+
+Tags: #text(red, [List only])
+
+`trim` is used to remove a section of a list based on the specified start, end and step parameters. This is inverse of slice.
+
+=== Arguments
+#argument_table((
+  [list],
+  [list to extract section of],
+  [table],
+  [-],
+  [start index],
+  [(Optional) starting index of the slice],
+  [integer],
+  [1],
+  [end index],
+  [(Optional) ending index of the slice],
+  [integer],
+  [last item of the list],
+  [step],
+  [(Optional) step size for iteration],
+  [integer],
+  [1],
+))
+
+=== Returns
+#return_table(([table], [list with a section trimmed], [table]))
+
+=== Usage
+#code(```lua
+tb = {10, 20, 30, 40, 50}
+
+result = Table.trim tb, 2, 4  -- remove element from index 2 to 4
+
+-- Output
+-- result = {10, 50}
+
+result = Table.trim tb, 1, 5, 2  -- remove element from index 1 to 5 with step 2
+
+-- Output
+-- result = {20, 40}
+
+result = Table.trim tb, 2, -2  -- remove element from index 2 to second to last
+
+-- Output
+-- {10, 50}
 ```)
 
 == extend
