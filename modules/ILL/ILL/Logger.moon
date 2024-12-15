@@ -1,14 +1,13 @@
 Table = require "ILL.ILL.Table"
 
 logger = (level, message, ...) ->
-    assert message != nil, "No message provided for logger to display."
 
-    if type(message) == Table
+    if type(message) == "table"
         aegisub.log level, Table.view message
     else
         aegisub.log level, tostring(message) .. "\n", ...
 
-    aegisub.cancel if level == 0
+    aegisub.cancel! if level == 0
 
 
 -- https://aegisub.org/docs/latest/automation/lua/progress_reporting/#aegisubdebugout
