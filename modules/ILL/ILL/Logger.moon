@@ -9,6 +9,18 @@ logger = (level, message, ...) ->
 
     aegisub.cancel! if level == 0
 
+windowLogger = (message, ...) ->
+    if ...
+        message = message\format ...
+
+    if type(message) == "table"
+        message = Table.view message
+    else
+        message = tostring(message)
+
+    aegisub.dialog.display { { class: "label", label: message } }, { "&Close" }, { cancel: "&Close" }
+    aegisub.cancel!
+
 
 -- https://aegisub.org/docs/latest/automation/lua/progress_reporting/#aegisubdebugout
 return {
@@ -32,17 +44,11 @@ return {
             logger 0, message, ...
 
     windowError: ( message, ... ) ->
-        if ...
-            message = message\format ...
-        aegisub.dialog.display { { class: "label", label: message } }, { "&Close" }, { cancel: "&Close" }
-        aegisub.cancel!
+        windowLogger message, ...
 
     windowAssertError: (condition, message, ...) ->
         return if condition
-        if ...
-            message = message\format ...
-        aegisub.dialog.display { { class: "label", label: message } }, { "&Close" }, { cancel: "&Close" }
-        aegisub.cancel!
+        windowLogger message, ...
 
     lineWarn: (line, message = " not specified") ->
         logger 2, "———— [Warning] ➔ Line #{line.naturalIndex}"
