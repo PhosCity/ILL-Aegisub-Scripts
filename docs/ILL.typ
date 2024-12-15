@@ -1590,7 +1590,7 @@ Tags: #text(red, [List only])
 === Usage
 #code(```lua
 tb = {"foo", "bar", "baz", "foo"}
-result = Table.removeValues tb, "foo"
+result = Table.makeSet tb, "foo"
 
 -- Output
 -- result = {
@@ -1635,6 +1635,38 @@ result = Table.prepend tb, "foo"
 
 -- Output
 -- result = {"foo", 3, 4, 5}
+```)
+
+== chunk
+
+Tags: #text(red, [List only])
+
+`chunk` is used to split a list into smaller chunks of specific size. The number of elements in the last chunk will be different if there is not enough elements in the original list.
+
+=== Arguments
+#argument_table((
+  [list],
+  [list to make chunks of],
+  [table],
+  [-],
+  [chunk size],
+  [how many elements should each chunk have],
+  [integer],
+  [-],
+))
+
+If the chunk size is greater than the number of elements of original list or is negative, it will return a single chunk that has all the elements of the original list.
+
+=== Returns
+#return_table(([chunks], [chunks of original list], [list[list]]))
+
+=== Usage
+#code(```lua
+tb = {1, 2, 3, 4, 5, 6, 7}
+result = Table.chunk tb, 3
+
+-- Output
+-- result = {{1, 2, 3}, {4, 5, 6}, {7}}
 ```)
 
 == splice
