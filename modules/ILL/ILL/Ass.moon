@@ -2,15 +2,18 @@ Aegi = require "ILL.ILL.Aegi"
 Table = require "ILL.ILL.Table"
 Math = require "ILL.ILL.Math"
 Logger = require "ILL.ILL.Logger"
+Line = require "ILL.ILL.Line"
 
 
 class Ass
+
     set: (@sub, @sel, @activeLine, @collectionCallback) =>
         -- gets meta and styles values
         @collectHead!
 
         -- Initiate table here
         @linesToInsert = {}
+        @lines = {}
 
         -- sets the selection information
         if not @sel or type(@sel) != "table" or #@sel == 0
@@ -27,7 +30,6 @@ class Ass
 
 
     collectLines: (@collectionCallback = ( line ) -> return not line.comment) =>
-        @lines = {}
         firstDialogueIndex = 0
 
         for l, i in @iterSub!
@@ -39,6 +41,8 @@ class Ass
             index = @sel[i]
             line = @sub[index]
             continue unless @collectionCallback line
+
+            Logger.assert @styles[line.style], "[ILL.Ass.collectLines] Style \"#{line.style}\" is unknown."
 
             line.absoluteIndex = index
             line.naturalIndex = index - firstDialogueIndex + 1
@@ -86,20 +90,21 @@ class Ass
     -- gets the meta and styles values from the ass file
     collectHead: =>
         @meta, @styles = {res_x: 0, res_y: 0, video_x_correct_factor: 1}, {}
-        for l in @iterSub!
-            if aegisub.progress.is_cancelled!
-                error "User cancelled", 2
+        for l, i in @iterSub!
+            Aegi.progressCancelled!
 
             if l.class == "style"
+                l.absoluteIndex = i
                 @styles[l.name] = l
             elseif l.class == "info"
-                @meta[l.key\lower!] = l.value
+                l.absoluteIndex = i
+                @meta[l.key] = l.value
             else
                 break
 
         -- check if there are any styles present in the ass file
-        if Table.isEmpty @styles
-            error "ERROR: No styles were found in the file, bug?!", 2
+        Logger.assert not Table.isEmpty @styles,
+            "[ILL.Ass.collectHead] No styles were found in the file, bug?"
 
         -- fix resolution data
         with @meta
@@ -139,6 +144,7 @@ class Ass
 
     -- Mark lines for insertion
     insertLine: (line, index) =>
+        Logger.assert @styles[line.style], "[ILL.ILL.Ass.insertLine] Argument 1 has unknown style \"#{line.style}\""
         line.toInsert = true
         line.insertIndex = index and index or math.huge
         table.insert @linesToInsert, line
@@ -186,12 +192,104 @@ class Ass
                 Table.pop @sel
 
         if updateRefs
+            @lines = {}
+            @linesToInsert = {}
             @collectLines!
+
 
     -- Get selected lines
     getSelection: =>
         @sel
 
 
-Ass
+    addStyle: (style, overwrite = false) =>
+        Logger.assert type(style) == "table", "[ILL.Ass.addStyle] Argument 1 must be a table, got #{type(style)}"
 
+        Logger.assert style["name"], "[ILL.Ass.addStyle] Style name not provided.\n\n" .. Table.view style, "style"
+
+        styleDefault = {
+            "class": "style",        "section": "[V4+ Styles]",
+            "name": "Default",       "fontname": "Arial",
+            "color1": "&H00FFFFFF&", "color2": "&H000000FF&",   "color3": "&H00000000&", "color4": "&H00000000&",
+            "italic": false,         "bold": false,             "underline": false,      "strikeout": false,
+            "scale_x": 100,          "scale_y": 100,
+            "fontsize": 48,          "spacing": 0,
+            "outline": 2,            "shadow": 2,               "align": 2,              "angle": 0,
+            "margin_l": 10,          "margin_r": 10,            "margin_b": 10,          "margin_t": 10,
+            "relative_to": 2,        "encoding": 1,             "borderstyle": 1
+        }
+
+        -- merge the contents of style into default style overwriting them
+        styleTable = Table.merge styleDefault, style
+        styleName = style.name
+
+        -- If the style name already exists in the file
+        if @styles[styleName]
+            unless overwrite
+                Logger.fatal "[ILL.Ass.addStyle] Style \"#{style.name}\" already exists."
+
+            @sub[@styles[styleName].absoluteIndex] = styleTable
+            @styles[styleName] = styleTable
+            return
+
+        -- Style does not exist, so we're inserting new one
+        local index
+        for l, i in @iterSub!
+            if l.class = "style"
+                index = i
+            elseif l.class == "dialogue"
+                break
+        @sub.insert index + 1, styleTable
+        @styles[styleName] = styleTable
+
+        -- Fix the line indices due to added style
+        for line in *@lines
+            line.absoluteIndex += 1
+            line.naturalIndex += 1
+            if line.insertIndex
+                line.insertIndex += 1
+
+
+    -- Remove styles from the file
+    removeStyles: (style) =>
+        if not style
+            style = Table.keys @styles
+        elseif type(style) == "string"
+            style = {style}
+        elseif type(style) != "table"
+            Logger.fatal "[ILL.Ass.removeStyles] Argument 1 must be string or table, got #{type(style)}"
+
+        -- collect all the styles used in the file. We will not allow removal of lines used in the file.
+        -- We should ideally not allow user to create broken subtitles.
+        usedStyle = {}
+        for l in @iterSub!
+            continue unless l.class == "dialogue"
+            usedStyle[l.style] = true
+
+        stylesToRemove = {}
+        for stl in *style
+            Logger.assert @styles[stl], "[ILL.Ass.removeStyles] Style #{stl} not found in the subtitle."
+            continue if usedStyle[stl]
+            table.insert stylesToRemove, @styles[stl].absoluteIndex
+
+        if #stylesToRemove > 0
+            @sub.delete stylesToRemove
+
+            -- Fix the line indices due to removed style
+            for line in *@lines
+                line.absoluteIndex -= #stylesToRemove
+                line.naturalIndex -= #stylesToRemove
+                if line.insertIndex
+                    line.insertIndex -= #stylesToRemove
+
+            @collectHead!
+
+
+    parse: (line) =>
+        @sections = Line line
+
+
+    __len: => #@lines
+
+
+Ass
